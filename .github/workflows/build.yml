@@ -1,0 +1,71 @@
+name: Derle
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  ios:
+    name: iOS (.ipa, imzasız — Sideloadly ile yükleyin)
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ios
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: XcodeGen kur
+        run: brew install xcodegen
+
+      - name: Xcode projesi oluştur
+        run: xcodegen generate
+
+      - name: Derle (imzasız)
+        run: |
+          xcodebuild \
+            -project SesKoprusu.xcodeproj \
+            -target SesKoprusu \
+            -configuration Release \
+            -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+
+      - name: .ipa paketle
+        run: |
+          mkdir -p Payload
+          cp -R build/Release-iphoneos/SesKoprusu.app Payload/
+          ls Payload/SesKoprusu.app/PlugIns
+          zip -qry SesKoprusu.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SesKoprusu-ipa
+          path: ios/SesKoprusu.ipa
+
+  android:
+    name: Android (.apk)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10.2"
+
+      - name: APK derle
+        run: gradle assembleDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SesKoprusu-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk

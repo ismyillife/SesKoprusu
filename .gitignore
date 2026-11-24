@@ -1,0 +1,16 @@
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.apk
+
+# iOS
+ios/*.xcodeproj
+ios/SesKoprusu/Info.plist
+ios/BroadcastExtension/Info.plist
+ios/**/*.entitlements
+xcuserdata/
+DerivedData/
+.DS_Store

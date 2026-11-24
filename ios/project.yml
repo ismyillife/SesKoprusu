@@ -1,0 +1,70 @@
+# XcodeGen proje tanımı. Mac'te:  brew install xcodegen && xcodegen
+# Sonra oluşan SesKoprusu.xcodeproj dosyasını Xcode ile açın.
+name: SesKoprusu
+
+options:
+  deploymentTarget:
+    iOS: "15.0"
+
+settings:
+  base:
+    # >>> Bunu kendinize özgü bir değerle değiştirin (örn. com.adiniz.seskoprusu) <<<
+    APP_BUNDLE_ID: com.example.seskoprusu
+    # Xcode > Signing & Capabilities'ten de seçebilirsiniz.
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"
+
+targets:
+  SesKoprusu:
+    type: application
+    platform: iOS
+    sources: [SesKoprusu, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_ID)
+    info:
+      path: SesKoprusu/Info.plist
+      properties:
+        CFBundleDisplayName: Ses Köprüsü
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSLocalNetworkUsageDescription: Sesi göndermek için yerel ağdaki Android alıcıyı bulur.
+        NSBonjourServices: [_seskoprusu._tcp]
+    # --- İsteğe bağlı: elle IP girme özelliği (ÜCRETLİ Apple geliştirici hesabı gerekir) ---
+    # entitlements:
+    #   path: SesKoprusu/SesKoprusu.entitlements
+    #   properties:
+    #     com.apple.security.application-groups: [group.$(APP_BUNDLE_ID)]
+    dependencies:
+      - target: BroadcastExtension
+        embed: true
+      - sdk: ReplayKit.framework
+
+  BroadcastExtension:
+    type: app-extension
+    platform: iOS
+    sources: [BroadcastExtension, Shared]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(APP_BUNDLE_ID).broadcast
+    info:
+      path: BroadcastExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Ses Köprüsü
+        NSLocalNetworkUsageDescription: Sesi göndermek için yerel ağdaki Android alıcıyı bulur.
+        NSBonjourServices: [_seskoprusu._tcp]
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.broadcast-services-upload
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler
+          RPBroadcastProcessMode: RPBroadcastProcessModeSampleBuffer
+    # --- İsteğe bağlı (yukarıdakiyle birlikte açın) ---
+    # entitlements:
+    #   path: BroadcastExtension/BroadcastExtension.entitlements
+    #   properties:
+    #     com.apple.security.application-groups: [group.$(APP_BUNDLE_ID)]
+    dependencies:
+      - sdk: ReplayKit.framework
